@@ -1,10 +1,37 @@
+from email import message
+from itertools import product
 from ssl import HAS_ECDH
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
-from .models import Product
-from .serializers import ProductSerializer
+from .models import Category, Product
+from .serializers import CategorySerializer, ProductSerializer
+
+@csrf_exempt
+def category_list(request):
+    """
+    List of all categories
+    """
+    if request.method=='GET':
+        categories=Category.objects.all()
+        serializer=CategorySerializer(categories,many=True)
+        return JsonResponse(serializer.data)
+
+@csrf_exempt
+def category_products(request,category_name):
+    """
+    List all products of the given category
+    """
+    if request.method=='GET':
+        category=Category.objects.filter(name=category_name)[0]
+        
+        if category:
+            products=Product.objects.filter(category=category)
+            serializer=ProductSerializer(products,many=True)
+            return JsonResponse(serializer.data)
+        return HttpResponse(message="Products not found",status=404)
+
 
 @csrf_exempt
 def product_list(request):
