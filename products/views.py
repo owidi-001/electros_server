@@ -1,12 +1,22 @@
 from email import message
 from itertools import product
-from ssl import HAS_ECDH
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
 from .models import Category, Product
 from .serializers import CategorySerializer, ProductSerializer
+
+@csrf_exempt
+def new_products(request):
+    """
+    Get 10 recently added products
+    """
+    if request.method=='Get':
+        products=Product.objects.order_by('-date').distinct('product')
+        serializer=ProductSerializer(products,many=True)
+        return JsonResponse(serializer.data)
+
 
 @csrf_exempt
 def category_list(request):
@@ -16,7 +26,7 @@ def category_list(request):
     if request.method=='GET':
         categories=Category.objects.all()
         serializer=CategorySerializer(categories,many=True)
-        return JsonResponse(serializer.data)
+        return JsonResponse(serializer.data,safe=False)
 
 @csrf_exempt
 def category_products(request,category_name):
@@ -78,5 +88,3 @@ def product_detail(request,pk):
         product.delete()
         return HttpResponse(status=204)
     
-
-
